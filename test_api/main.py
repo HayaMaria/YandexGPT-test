@@ -1,16 +1,37 @@
-# This is a sample Python script.
+import sys
+from pathlib import Path
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+# путь к папке scripts
+sys.path.append(str(Path(__file__).resolve().parent.parent / "scripts"))
+from take_the_key import get_key
+
+key = None
+def key_is_active(key):
+    """
+    Здесь проверяем активен ли ключ.
+    """
+    return bool(key)
+
+def take_the_words():
+    """
+    Здесь берём слова у пользователя, и возвращаем их в виде списка.
+    """
+    return list(words)
+
+def main(words_list):
+    global key
+
+    #проверяем, активен ли старый ключ
+    if not key_is_active(key):
+        key = get_key()  # получаем новый ключ только если нужно
+
+    """
+    Здесь запросы к нейросети. 
+    И возможно формирование таблицы.
+    """
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__ == "__main__":
+    words = ["apple", "banana", "orange"]
+    main(words)
