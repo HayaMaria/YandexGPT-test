@@ -12,6 +12,6 @@ def get_key():
 
 if __name__ == "__main__":
     #для проверок
-    print("Ключ из secrets.env: "), get_key()
+    print("Ключ из secrets.env: ", get_key())
 
 
