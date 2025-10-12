@@ -5,13 +5,9 @@ import requests
 
 from .take_the_key import get_key
 
+url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+modelUri = "gpt://b1gd0j1qrlj8e90tbbfp/yandexgpt"
 key_for_neural_network = None
-
-def key_is_active(key):
-    """
-    Здесь проверяем активен ли ключ.
-    """
-    return bool(key)
 
 def take_the_words():
     """
@@ -20,17 +16,16 @@ def take_the_words():
     return list(words)
 
 def request_to_neural_network(words_list):
-    global key_for_neural_network
 
-    #проверяем, активен ли старый ключ
-    if not key_is_active(key_for_neural_network):
-        key_for_neural_network = get_key()  # получаем новый ключ только если нужно
 
-    if not key_is_active(key_for_neural_network):
-        print("Ключ отсутствует или некорруктен.")
-        return None
 
-    url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+
+
+
+
+
+
+
     headers = {
         "Authorization": f"Bearer {key_for_neural_network}",
         "Content-Type": "application/json"
@@ -41,7 +36,7 @@ def request_to_neural_network(words_list):
     for word in words_list:
         prompt = f"Дай транскрипцию с ударением и перевод слова {word}. Формат ТРАНСКРИПЦИЯ - ПЕРЕВОД"
         data = {
-            "modelUri": "gpt://b1gd0j1qrlj8e90tbbfp/yandexgpt",
+            "modelUri": modelUri,
             "completionOptions": {
                 "temperature": 0.3,
                 "maxTokens": 100
