@@ -95,9 +95,40 @@ def request_to_neural_network(words_list):
 
 
 def writing_to_files(table, failed_word):
-    """Зпись table в файл table_words.txt.
-       Подсчет failed_words и запись о их количесве в файл table_words.txt.
-       Запись failed_words в файл failed_words.txt."""
+    if not table:
+        raise ValueError("Таблица пуста.")
+
+    # Путь к файлу table_words.txt
+    folder = os.getenv("KEY_FOLDER")
+    base_path = folder or os.path.expanduser("~")
+    table_words_path = Path(base_path) / "table_words.txt"
+
+    headers = ["Слово", "Транскрипция", "Перевод"]
+    headers_line = "| " + " | ".join(headers) + " |"
+    separator = "| " + " | ".join(["---"] * len(headers)) + " |"
+
+    row_lines = []
+    for row in table:
+        cell_strings = list(map(str, row))
+        joined = " | ".join(cell_strings)
+        md_line = " | " + joined + " | "
+        row_lines.append(md_line)
+
+    table_md = "\n".join([headers_line, separator] + row_lines)
+
+    error_count = len(failed_word)
+    error_line = f"\n\n**Количество ошибок:** {error_count}\n"
+
+    with table_words_path.open("w", encoding="utf-8") as f:
+        f.write(table_md)
+        f.write(error_line)
+
+    if error_count > 0:
+        failed_words_path = Path(base_path) / "failed_words.txt"
+        with failed_words_path.open("a", encoding="utf-8") as f:
+            for word in failed_word:
+                f.write(word + "\n")
+
     return
 
 
