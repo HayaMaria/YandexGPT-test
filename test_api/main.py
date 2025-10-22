@@ -51,7 +51,7 @@ def request_to_neural_network(words_list):
     table = []
 
     for word in words_list:
-        prompt = f"Дай транскрипцию с ударением и перевод слова {word}. Формат ТРАНСКРИПЦИЯ - ПЕРЕВОД"
+        prompt = f"Дай транскрипцию русскими буквами с ударением и перевод слова {word}. Формат: транскрипция ! перевод"
         data = {
             "modelUri": modelUri,
             "completionOptions": {
@@ -80,7 +80,7 @@ def request_to_neural_network(words_list):
                 handle_fail(word, "некорректный ответ")
                 continue
 
-            parts = result.split("-")
+            parts = result.split("!")
             if len(parts) == 2:
                 transcription = parts[0].strip()
                 translation = parts[1].strip()
@@ -117,7 +117,7 @@ def writing_to_files(table, failed_word):
     table_md = "\n".join([headers_line, separator] + row_lines)
 
     error_count = len(failed_word)
-    error_line = f"\n\n**Количество ошибок:** {error_count}\n"
+    error_line = f"\n\nКоличество ошибок: {error_count}\n"
 
     with table_words_path.open("w", encoding="utf-8") as f:
         f.write(table_md)
@@ -133,6 +133,6 @@ def writing_to_files(table, failed_word):
 
 
 if __name__ == "__main__":
-    words = ["apple", "banana", "orange"]
-    table_for_test = request_to_neural_network(words)
-    print(table_for_test)
+    words_for_test = take_the_words()
+    table_for_test = request_to_neural_network(words_for_test)
+    writing_to_files(table_for_test, failed_words)

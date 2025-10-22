@@ -48,14 +48,21 @@ def get_key():
         "aud": "https://iam.api.cloud.yandex.net/iam/v1/tokens",
         "iss": service_key["service_account_id"],
         "iat": now,
-        "exp": now + 360  # Время жизни токена.
+        "exp": now + 3600  # Время жизни токена.
         }
+
+    headers = {
+        "kid": service_key["id"]
+    }
 
     jwt_token = jwt.encode(
         payload,
         service_key["private_key"],
-        algorithm=service_key["key_algorithm"]
+        algorithm="PS256",  # service_key["key_algorithm]"
+        headers=headers
     )
+
+    # TODO: Сделать подбор алгоритма(для универсальности).
 
     response = requests.post(  # Запрашиваем новый IAM-токен.
         "https://iam.api.cloud.yandex.net/iam/v1/tokens",
