@@ -58,11 +58,9 @@ def get_key():
     jwt_token = jwt.encode(
         payload,
         service_key["private_key"],
-        algorithm="PS256",  # service_key["key_algorithm]"
-        headers=headers
+        algorithm="PS256",  # Единственный алгоритм, который
+        headers=headers     # поддерживает ЯндексCloud при подписи JWT для получения IAM токена.
     )
-
-    # TODO: Сделать подбор алгоритма(для универсальности).
 
     response = requests.post(  # Запрашиваем новый IAM-токен.
         "https://iam.api.cloud.yandex.net/iam/v1/tokens",

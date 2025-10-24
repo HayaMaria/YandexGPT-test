@@ -105,7 +105,7 @@ def writing_to_files(table, failed_word):
 
     headers = ["Слово", "Транскрипция", "Перевод"]
     headers_line = "| " + " | ".join(headers) + " |"
-    separator = "| " + " | ".join(["---"] * len(headers)) + " |"
+    separator = "| " + " | ".join(["-------"] * len(headers)) + " |"
 
     row_lines = []
     for row in table:
