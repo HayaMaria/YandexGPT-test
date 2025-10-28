@@ -1,7 +1,8 @@
 from pathlib import Path
 import os
 import requests
-from take_the_key import get_key
+from test_api.take_the_key import get_key
+import csv
 
 url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
 modelUri = "gpt://b1gd0j1qrlj8e90tbbfp/yandexgpt"
@@ -101,35 +102,30 @@ def writing_to_files(table, failed_word):
     # Путь к файлу table_words.txt
     folder = os.getenv("KEY_FOLDER")
     base_path = folder or os.path.expanduser("~")
-    table_words_path = Path(base_path) / "table_words.txt"
+    table_words_path = Path(base_path) / "table_words.tsv"
 
-    headers = ["Слово", "Транскрипция", "Перевод"]
-    headers_line = "| " + " | ".join(headers) + " |"
-    separator = "| " + " | ".join(["-------"] * len(headers)) + " |"
-
-    row_lines = []
-    for row in table:
-        cell_strings = list(map(str, row))
-        joined = " | ".join(cell_strings)
-        md_line = " | " + joined + " | "
-        row_lines.append(md_line)
-
-    table_md = "\n".join([headers_line, separator] + row_lines)
+    if not table_words_path.exists():  # Проверяем, существует ли файл.
+        table_words_path.touch()  # Если файла нет - создаём пустой.
 
     error_count = len(failed_word)
-    error_line = f"\n\nКоличество ошибок: {error_count}\n"
+    error_line = f"Количество ошибок: {error_count}"
 
-    with table_words_path.open("w", encoding="utf-8") as f:
-        f.write(table_md)
-        f.write(error_line)
+    # Записываем в TSV.
+    with table_words_path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f, delimiter="\t")  # Табуляция как разделитель.
+        writer.writerow(["Слово", "Транскрипция", "Перевод"])
+        writer.writerows(table)
+        writer.writerow([error_line])
 
     if error_count > 0:
         failed_words_path = Path(base_path) / "failed_words.txt"
+        if not failed_words_path.exists():  # Проверяем, существует ли файл.
+            failed_words_path.touch()  # Если файла нет - создаём пустой.
         with failed_words_path.open("a", encoding="utf-8") as f:
             for word in failed_word:
                 f.write(word + "\n")
 
-    return
+    return print("Программа завершена успешно. Проверьте результат в файле table_words.tsv.")
 
 
 if __name__ == "__main__":
