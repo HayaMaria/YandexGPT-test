@@ -7,6 +7,26 @@ import time
 import os
 
 
+def parse_expires_at(ts: str) -> datetime:  # Приводит строку с датой к формату, который принимает datetime.
+    ts = ts.replace("Z", "+00:00")  # Z и +00:00 — одинаковый часовой пояс (UTC).
+    # datetime не всегда понимает Z, поэтому заменяем.
+    if "." in ts:  # Проверяем, есть ли в строке дробная часть секунды.
+        head, tail = ts.split(".", 1)  # Делим строку на две части: до точки и после.
+        # head — дата, часы, минуты, секунды; tail — дробные секунды + часовой пояс.
+        if "+" in tail:  # Если есть знак +, значит есть часовой пояс.
+            frac, tz = tail.split("+", 1)  # Отделяем дробную часть и часовой пояс.
+            tz = "+" + tz
+        elif "-" in tail:  # То же самое, если часовой пояс отрицательный.
+            frac, tz = tail.split("-", 1)
+            tz = "-" + tz
+        else:  # Если часового пояса нет вообще.
+            frac, tz = tail, ""
+        # Делаем дробную часть ровно 6 знаков: если меньше — дополняем нулями, если больше — обрезаем.
+        frac = (frac + "000000")[:6]
+        ts = head + "." + frac + tz  # Собираем строку обратно.
+    return datetime.fromisoformat(ts)  # Преобразуем строку в datetime-объект.
+
+
 def get_key():
     # Путь к файлам secret.json и token_cache.
     folder = os.getenv("KEY_FOLDER")
@@ -29,10 +49,10 @@ def get_key():
     iam_token = cache.get("iam_token")  # токен
     expiresAt = cache.get("expiresAt")  # срок действия
 
-    # Буффер, чтобы успеть использовать токен до истечения срока.
+    # Буфер, чтобы успеть использовать токен до истечения срока.
     buffer_seconds = 10
     # Переводим expiresAt в формат UNIX-времени.
-    expiresAt_time = int(datetime.fromisoformat(expiresAt.replace("Z", "+00:00")).timestamp())
+    expiresAt_time = int(parse_expires_at(expiresAt).timestamp())
 
     now = int(time.time())
 
