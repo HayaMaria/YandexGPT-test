@@ -5,16 +5,15 @@ from test_api.take_the_key import get_key
 import csv
 
 url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
-modelUri = "gpt://b1gd0j1qrlj8e90tbbfp/yandexgpt"
+
+folder = os.getenv("KEY_FOLDER")
+PATH_TO_FILES = folder or os.path.expanduser("~")
 
 failed_words = []
 
 
 def take_the_words():
-    # Путь к файлу words.txt
-    folder = os.getenv("KEY_FOLDER")
-    base_path = folder or os.path.expanduser("~")
-    words_path = Path(base_path) / "words.txt"
+    words_path = Path(PATH_TO_FILES) / "words.txt"
 
     words_list = []
 
@@ -40,9 +39,54 @@ def handle_fail(word, reason):
     return
 
 
+def parse_response(word, response):
+    # Парсит ответ от API для одного слова.
+    # Возвращает [transcription, translation] или None при ошибке.
+
+    if response.status_code != 200:
+        handle_fail(word, response.status_code)
+        return None
+
+    try:
+        answer = response.json()  # Превращаем ответ сервера в словарь Python.
+        alternatives = answer.get("result", {}).get("alternatives", [])
+        # result - ключ в словаре answer, его значение - словарь.
+        # alternatives - ключ в словаре result, его значение список вариантов ответа.
+    except Exception as e:  # На случай, если ответ не в JSON-формате.
+        handle_fail(word, f"ошибка JSON: {e}")
+        return None
+
+    if not alternatives:
+        handle_fail(word, "некорректный ответ")
+        return None
+
+    result = alternatives[0].get("message", {}).get("text")
+    # Берём первый элемент списка alternatives - словарь.
+    # message - ключ в словаре alternatives[0], его значение - словарь.
+    # text - ключ в словаре message, его значение - нужный нам ответ от нейросети.
+
+    if not result:
+        handle_fail(word, "некорректный ответ")
+        return None
+
+    parts = result.split("!", 1)
+    if len(parts) == 2:
+        parts[0] = parts[0].strip()
+        parts[1] = parts[1].strip()
+    else:
+        handle_fail(word, "неверный формат")
+        return None
+
+    return parts
+
+
 def request_to_neural_network(words_list):
 
     key_for_neural_network = get_key()
+
+    ID_folder_path = Path(PATH_TO_FILES) / "ID_folder.txt"
+    with ID_folder_path.open("r", encoding="utf-8") as y:
+        modelUri = y.read()
 
     headers = {
         "Authorization": f"Bearer {key_for_neural_network}",
@@ -68,29 +112,9 @@ def request_to_neural_network(words_list):
             json=data
         )
 
-        # TODO: упростить условную часть кода для лучшей читаемости (слишком громоздко и запутанно)
-        if response.status_code == 200:
-            answer = response.json()
-            alternatives = answer.get("result", {}).get("alternatives", [])
-            if len(alternatives) > 0:
-                result = alternatives[0].get("message", {}).get("text", None)
-                if result is None:
-                    handle_fail(word, "некорректный ответ")
-                    continue
-            else:
-                handle_fail(word, "некорректный ответ")
-                continue
-
-            parts = result.split("!")
-            if len(parts) == 2:
-                transcription = parts[0].strip()
-                translation = parts[1].strip()
-                table.append([word, transcription, translation])
-            else:
-                handle_fail(word, "неверный формат")
-        else:
-            handle_fail(word, response.status_code)
-            continue
+        parsed = parse_response(word, response)
+        if parsed:
+            table.append([word, *parsed])
 
     return table
 
@@ -99,10 +123,7 @@ def writing_to_files(table, failed_word):
     if not table:
         raise ValueError("Таблица пуста.")
 
-    # Путь к файлу table_words.txt
-    folder = os.getenv("KEY_FOLDER")
-    base_path = folder or os.path.expanduser("~")
-    table_words_path = Path(base_path) / "table_words.tsv"
+    table_words_path = Path(PATH_TO_FILES) / "table_words.tsv"
 
     if not table_words_path.exists():  # Проверяем, существует ли файл.
         table_words_path.touch()  # Если файла нет - создаём пустой.
@@ -118,7 +139,7 @@ def writing_to_files(table, failed_word):
         writer.writerow([error_line])
 
     if error_count > 0:
-        failed_words_path = Path(base_path) / "failed_words.txt"
+        failed_words_path = Path(PATH_TO_FILES) / "failed_words.txt"
         if not failed_words_path.exists():  # Проверяем, существует ли файл.
             failed_words_path.touch()  # Если файла нет - создаём пустой.
         with failed_words_path.open("a", encoding="utf-8") as f:
