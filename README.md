@@ -13,7 +13,7 @@
 - Python 3.12 
 - PyJWT — для работы с токенами Yandex Cloud 
 - requests — для запросов к нейросети
-- API-ключ Yandex Cloud для доступа к нейросети. (Подробнее в файле ???)
+- API-ключ Yandex Cloud для доступа к нейросети. (Подробнее в файле How_to_create_the_key.md)
 
 ## Технологии
 - Python 3.12
