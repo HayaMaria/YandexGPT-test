@@ -86,7 +86,8 @@ def request_to_neural_network(words_list):
 
     ID_folder_path = Path(PATH_TO_FILES) / "ID_folder.txt"
     with ID_folder_path.open("r", encoding="utf-8") as y:
-        modelUri = y.read()
+        ID_folder = y.read()
+        modelUri = f"gpt://{ID_folder}/yandexgpt"
 
     headers = {
         "Authorization": f"Bearer {key_for_neural_network}",
