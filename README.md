@@ -22,8 +22,8 @@
 
 1. **Склонируйте репозиторий:**
 
-`git clone https://github.com/HayaMaria/testAPI.git`  
-`cd testAPI`
+`git clone https://github.com/HayaMaria/YandexGPT-test.git`  
+`cd YandexGPT-test`
 
 2. **Убедитесь, что у вас установлен Python 3.12+.**
 
